@@ -108,8 +108,8 @@
     const display = document.getElementById('display');
 
     function appendValue(value) {
-        // If starting fresh
-        if (display.textContent === '0' || display.textContent === 'Error') {
+        // Only replace the display if it's EXACTLY "0" AND you're typing a NON-zero digit
+        if (display.textContent === '0' && value !== '0') {
             display.textContent = value;
         } else {
             display.textContent += value;
