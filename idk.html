@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Educational Wave Game</title>
+    <style>
+        body {
+            margin: 0;
+            background: #050510;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #info {
+            margin: 10px;
+            text-align: center;
+        }
+        canvas {
+            border: 2px solid #444;
+            background: #060615;
+        }
+        .highlight {
+            color: #00e0ff;
+        }
+    </style>
+</head>
+<body>
+<div id="info">
+    <h2>Wave Motion Demo (Educational Knockoff)</h2>
+    <p>
+        <span class="highlight">Hold SPACE</span> to flip the wave direction.<br>
+        Avoid the orange blocks. This shows basic <span class="highlight">motion, gravity, and collision</span>.
+    </p>
+    <p>Distance: <span id="distance">0</span></p>
+</div>
+<canvas id="game" width="800" height="400"></canvas>
+
+<script>
+// ======== Basic setup ========
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const distanceDisplay = document.getElementById("distance");
+
+// Player (the "wave" square)
+const player = {
+    x: 100,
+    y: canvas.height / 2,
+    size: 16,
+    speedX: 4,
+    velY: 0,
+    waveStrength: 0.35,   // how quickly it moves up/down
+    direction: 1          // 1 = down, -1 = up
+};
+
+// Game state
+let obstacles = [];
+let frame = 0;
+let gameOver = false;
+let distance = 0;
+let spaceHeld = false;
+
+// ======== Input handling ========
+window.addEventListener("keydown", (e) => {
+    if (e.code === "Space") {
+        spaceHeld = true;
+        e.preventDefault();
+    }
+    if (e.code === "Enter" && gameOver) {
+        resetGame();
+    }
+});
+
+window.addEventListener("keyup", (e) => {
+    if (e.code === "Space") {
+        spaceHeld = false;
+        e.preventDefault();
+    }
+});
+
+// ======== Obstacle system ========
+function spawnObstacle() {
+    const width = 30;
+    const gapSize = 120;
+
+    // random vertical gap
+    const gapY = 60 + Math.random() * (canvas.height - 120 - gapSize);
+
+    // top wall
+    obstacles.push({
+        x: canvas.width,
+        y: 0,
+        width: width,
+        height: gapY
+    });
+
+    // bottom wall
+    obstacles.push({
+        x: canvas.width,
+        y: gapY + gapSize,
+        width: width,
+        height: canvas.height - (gapY + gapSize)
+    });
+}
+
+function updateObstacles() {
+    for (let i = 0; i < obstacles.length; i++) {
+        obstacles[i].x -= player.speedX; // move left
+    }
+
+    // remove off-screen
+    obstacles = obstacles.filter(o => o.x + o.width > 0);
+
+    // spawn new every fixed frames
+    if (frame % 80 === 0) {
+        spawnObstacle();
+    }
+}
+
+function drawObstacles() {
+    ctx.fillStyle = "#ff8800";
+    obstacles.forEach(o => {
+        ctx.fillRect(o.x, o.y, o.width, o.height);
+    });
+}
+
+// ======== Collision ========
+function checkCollision() {
+    for (let o of obstacles) {
+        if (
+            player.x < o.x + o.width &&
+            player.x + player.size > o.x &&
+            player.y < o.y + o.height &&
+            player.y + player.size > o.y
+        ) {
+            return true;
+        }
+    }
+    // hit ceiling or floor
+    if (player.y < 0 || player.y + player.size > canvas.height) {
+        return true;
+    }
+    return false;
+}
+
+// ======== Player update ========
+function updatePlayer() {
+    // Wave logic:
+    // If space is held, direction is up; else down.
+    player.direction = spaceHeld ? -1 : 1;
+
+    // Change vertical velocity based on direction
+    player.velY += player.waveStrength * player.direction;
+
+    // Apply velocity
+    player.y += player.velY;
+
+    // Move forward
+    player.x += player.speedX * 0.12; // small forward nudge; camera is "scrolling"
+
+    // Distance traveled (educational: simple integration over time)
+    distance += player.speedX * 0.1;
+    distanceDisplay.textContent = Math.floor(distance);
+}
+
+// ======== Drawing ========
+function drawPlayer() {
+    ctx.fillStyle = "#00e0ff";
+    ctx.fillRect(player.x, player.y, player.size, player.size);
+
+    // Draw a small "direction" line to visualize motion direction
+    ctx.strokeStyle = "#00ff85";
+    ctx.beginPath();
+    ctx.moveTo(player.x + player.size / 2, player.y + player.size / 2);
+    ctx.lineTo(
+        player.x + player.size / 2 + 10,
+        player.y + player.size / 2 + player.direction * 10
+    );
+    ctx.stroke();
+}
+
+function drawBackgroundGrid() {
+    ctx.strokeStyle = "#101020";
+    ctx.lineWidth = 1;
+
+    const gridSize = 40;
+    for (let x = 0; x < canvas.width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+    }
+    for (let y = 0; y < canvas.height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+}
+
+function drawGameOver() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "center";
+    ctx.font = "28px Arial";
+    ctx.fillText("Game Over", canvas.width / 2, canvas.height / 2 - 10);
+    ctx.font = "18px Arial";
+    ctx.fillText("Press ENTER to restart", canvas.width / 2, canvas.height / 2 + 20);
+}
+
+// ======== Game loop ========
+function resetGame() {
+    obstacles = [];
+    frame = 0;
+    gameOver = false;
+    distance = 0;
+    player.x = 100;
+    player.y = canvas.height / 2;
+    player.velY = 0;
+}
+
+function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBackgroundGrid();
+
+    if (!gameOver) {
+        frame++;
+        updatePlayer();
+        updateObstacles();
+        drawObstacles();
+        drawPlayer();
+
+        if (checkCollision()) {
+            gameOver = true;
+        }
+    } else {
+        drawObstacles();
+        drawPlayer();
+        drawGameOver();
+    }
+
+    requestAnimationFrame(loop);
+}
+
+resetGame();
+loop();
+</script>
+</body>
+</html>
