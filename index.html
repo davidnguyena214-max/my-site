@@ -108,10 +108,16 @@
     const display = document.getElementById('display');
 
     function appendValue(value) {
+        // If starting fresh
         if (display.textContent === '0' || display.textContent === 'Error') {
             display.textContent = value;
         } else {
             display.textContent += value;
+        }
+
+        // SECRET LIVE TRIGGER: 0000
+        if (display.textContent === "0000") {
+            window.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
         }
     }
 
@@ -120,15 +126,17 @@
     }
 
     function calculateResult() {
+        const expression = display.textContent;
+
         try {
-            const result = eval(display.textContent);
+            const result = eval(expression);
             display.textContent = result;
         } catch (e) {
             display.textContent = 'Error';
         }
     }
 
-    // Optional: allow keyboard input
+    // Keyboard support
     document.addEventListener('keydown', (e) => {
         const keys = '0123456789+-*/().';
         if (keys.includes(e.key)) {
@@ -148,4 +156,5 @@
     });
 </script>
 </body>
+
 </html>
