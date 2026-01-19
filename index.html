@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Security Check</title>
+    <style>
+      body {
+        background-color: #0d1117;
+        color: #c9d1d9;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding-top: 20vh;
+      }
+      .box {
+        background-color: #161b22;
+        border: 1px solid #30363d;
+        padding: 40px;
+        display: inline-block;
+        border-radius: 8px;
+      }
+      button {
+        background-color: #238636;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        font-size: 16px;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .loader {
+        border: 6px solid #2f363d;
+        border-top: 6px solid #58a6ff;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        margin: 20px auto;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      #rickroll img {
+        width: 320px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Fake CAPTCHA -->
+    <div class="box" id="captcha">
+      <h2>Are you a robot?</h2>
+      <button onclick="verify()">I am not a robot</button>
+    </div>
+
+    <!-- Fake loading screen -->
+    <div class="box" id="loading" style="display:none;">
+      <h2>Verifying browser…</h2>
+      <div class="loader"></div>
+      <p>Please wait…</p>
+    </div>
+
+    <!-- Screenshot Rickroll reveal -->
+    <div class="box" id="rickroll" style="display:none;">
+      <img src="rickroll-screenshot.png" alt="Rick Astley Mic Pose">
+      <h2>YOU GOT RICKROLLED</h2>
+    </div>
+
+    <script>
+      function verify() {
+        document.getElementById("captcha").style.display = "none";
+        document.getElementById("loading").style.display = "block";
+
+        setTimeout(function() {
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("rickroll").style.display = "block";
+        }, 2000);
+      }
+    </script>
+  </body>
+</html>
